@@ -5,6 +5,7 @@ import './index.css'
 import Layout from './Layout'
 import Dashboard from './pages/Dashboard'
 import NeuralOps from './pages/NeuralOps'
+import { ErrorBoundary } from './components/ErrorBoundary.tsx'
 
 // Placeholder components for routes not yet fully implemented
 const Workspace = () => <div className="p-6 text-gray-500">Workspace Module Loading...</div>
@@ -13,7 +14,8 @@ const Settings = () => <div className="p-6 text-gray-500">System Settings Loadin
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
@@ -25,5 +27,6 @@ createRoot(document.getElementById('root')!).render(
         </Route>
       </Routes>
     </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>,
 )

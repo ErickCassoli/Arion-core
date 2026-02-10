@@ -15,16 +15,20 @@ export default {
         bg: {
           DEFAULT: '#0f1115', // Atlas Dark Base
           secondary: '#16191f', // Sidebar/Cards
-          tertiary: '#1e2229' // Inputs/Hovers
+          tertiary: '#1e2229', // Inputs/Hovers
+          'dark-purple': '#0f0518', // Deep Purple Background
         },
         border: {
           DEFAULT: 'rgba(255, 255, 255, 0.08)',
-          hover: 'rgba(255, 255, 255, 0.15)'
+          hover: 'rgba(255, 255, 255, 0.15)',
+          purple: 'rgba(124, 58, 237, 0.2)', // Purple border
         },
         accent: {
           DEFAULT: '#6366f1', // Indigo-500
           hover: '#4f46e5',
-          glow: 'rgba(99, 102, 241, 0.15)'
+          glow: 'rgba(99, 102, 241, 0.15)',
+          purple: '#7c3aed', // Violet-600
+          'purple-glow': 'rgba(124, 58, 237, 0.25)',
         },
         success: '#10b981',
         warning: '#f59e0b', 

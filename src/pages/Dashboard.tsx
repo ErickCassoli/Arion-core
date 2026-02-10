@@ -17,7 +17,7 @@ export default function Dashboard() {
   const loadTasks = async () => {
     try {
       const data = await TaskService.getAll();
-      setTasks(data);
+      setTasks(Array.isArray(data) ? data : []);
       setError('');
     } catch (err) {
       console.error("Failed to load tasks:", err);
