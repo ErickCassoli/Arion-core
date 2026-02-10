@@ -1,6 +1,14 @@
+import { useEffect, useState } from 'react';
 import { Zap, Brain, Activity as ActivityIcon } from 'lucide-react';
+import { MetricsService } from '../services/api';
 
 export default function NeuralOps() {
+  const [metrics, setMetrics] = useState<any>(null);
+
+  useEffect(() => {
+    MetricsService.getSystemStatus().then(setMetrics).catch(console.error);
+  }, []);
+
   return (
     <div className="p-6">
       <header className="mb-8">
@@ -13,8 +21,8 @@ export default function NeuralOps() {
           <div className="absolute top-0 right-0 p-4 opacity-10"><Zap size={48} /></div>
           <div className="flex justify-between items-start mb-4 relative z-10">
             <div>
-              <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Token Usage</p>
-              <h3 className="text-2xl font-mono text-white mt-1">154,320</h3>
+              <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">CPU Load</p>
+              <h3 className="text-2xl font-mono text-white mt-1">{metrics?.cpu_load || '---'}</h3>
             </div>
             <Zap size={20} className="text-warning" />
           </div>
@@ -27,8 +35,8 @@ export default function NeuralOps() {
            <div className="absolute top-0 right-0 p-4 opacity-10"><Brain size={48} /></div>
            <div className="flex justify-between items-start mb-4 relative z-10">
             <div>
-              <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Memory Depth</p>
-              <h3 className="text-2xl font-mono text-white mt-1">1,240 <span className="text-sm text-gray-500">lines</span></h3>
+              <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Memory</p>
+              <h3 className="text-2xl font-mono text-white mt-1">{metrics?.memory_usage || '---'}</h3>
             </div>
             <Brain size={20} className="text-accent" />
           </div>
@@ -41,12 +49,12 @@ export default function NeuralOps() {
            <div className="absolute top-0 right-0 p-4 opacity-10"><ActivityIcon size={48} /></div>
            <div className="flex justify-between items-start mb-4 relative z-10">
             <div>
-              <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">System Health</p>
-              <h3 className="text-2xl font-mono text-success mt-1">STABLE</h3>
+              <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Node Link</p>
+              <h3 className="text-sm font-mono text-success mt-2">{metrics?.node_link || 'Scanning...'}</h3>
             </div>
             <ActivityIcon size={20} className="text-success" />
           </div>
-          <p className="text-[10px] text-gray-500 mt-2 relative z-10">Last Heartbeat: 2s ago</p>
+          <p className="text-[10px] text-gray-500 mt-2 relative z-10">Last Heartbeat: just now</p>
         </div>
       </div>
     </div>

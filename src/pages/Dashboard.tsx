@@ -1,12 +1,7 @@
-import { MoreVertical, Clock, Plus, AlertCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { MoreVertical, Clock, Plus, AlertCircle, Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
-
-const TASKS = [
-  { id: 1, title: 'Interface Visual v5.0 (Atlas Core)', status: 'in_progress', priority: 'high', tag: 'Frontend' },
-  { id: 6, title: 'Email Reporting System', status: 'todo', priority: 'high', tag: 'Backend' },
-  { id: 2, title: 'Audit: openclaw-remote', status: 'todo', priority: 'medium', tag: 'Security' },
-  { id: 3, title: 'Audit: stealthy-auto-browse', status: 'todo', priority: 'medium', tag: 'Security' },
-];
+import { TaskService } from '../services/api';
 
 const COLUMNS = {
   todo: { label: 'To Do', color: 'border-blue-500/50', badge: 'bg-blue-500/10 text-blue-400' },
@@ -15,16 +10,46 @@ const COLUMNS = {
 };
 
 export default function Dashboard() {
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const loadTasks = async () => {
+    try {
+      const data = await TaskService.getAll();
+      setTasks(data);
+      setError('');
+    } catch (err) {
+      console.error("Failed to load tasks:", err);
+      // Fallback visual para não quebrar a UI se a API estiver offline
+      setError('Neural Link Disconnected (API Unreachable)');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTasks();
+    const interval = setInterval(loadTasks, 5000); // Polling a cada 5s
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="p-6 h-full flex flex-col">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold text-white">Task Board</h1>
-          <p className="text-xs text-gray-500 mt-1">Active Neural Operations</p>
+          <h1 className="text-xl font-semibold text-white flex items-center gap-3">
+            Task Board
+            {loading && <Loader2 size={16} className="animate-spin text-gray-500" />}
+          </h1>
+          <p className="text-xs text-gray-500 mt-1 flex items-center gap-2">
+            Active Neural Operations
+            {error && <span className="text-red-500 flex items-center gap-1"><AlertCircle size={10}/> {error}</span>}
+          </p>
         </div>
         <div className="flex gap-2">
           <button className="px-3 py-1.5 rounded-md bg-bg-secondary border border-border text-xs text-gray-300 hover:text-white transition-colors">Filter</button>
-          <button className="px-3 py-1.5 rounded-md bg-bg-secondary border border-border text-xs text-gray-300 hover:text-white transition-colors">Sort</button>
+          <button onClick={() => loadTasks()} className="px-3 py-1.5 rounded-md bg-bg-secondary border border-border text-xs text-gray-300 hover:text-white transition-colors">Sync</button>
         </div>
       </div>
 
@@ -36,13 +61,13 @@ export default function Dashboard() {
               <div className={clsx("p-3 border-b border-border flex justify-between items-center border-l-2 bg-bg-secondary/50", col.color)}>
                 <span className="font-medium text-gray-300 text-xs uppercase tracking-wider">{col.label}</span>
                 <span className="bg-bg-tertiary text-gray-500 text-[10px] px-2 py-0.5 rounded-full font-mono">
-                  {TASKS.filter(t => t.status === key).length}
+                  {tasks.filter(t => t.status === key).length}
                 </span>
               </div>
 
               {/* Task List */}
               <div className="p-3 space-y-3 overflow-y-auto flex-1 scrollbar-thin">
-                {TASKS.filter(t => t.status === key).map(task => (
+                {tasks.filter(t => t.status === key).map(task => (
                   <div key={task.id} className="bg-bg-tertiary p-4 rounded border border-border hover:border-gray-500/50 transition-all cursor-pointer shadow-sm group relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-r from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
                     
@@ -50,9 +75,9 @@ export default function Dashboard() {
                       <span className={clsx("text-[10px] px-1.5 py-0.5 rounded border font-medium", 
                         task.tag === 'Frontend' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
                         task.tag === 'Backend' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                        'bg-red-500/10 text-red-400 border-red-500/20'
+                        'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
                       )}>
-                        {task.tag}
+                        {task.priority || 'Normal'}
                       </span>
                       <button className="text-gray-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
                         <MoreVertical size={14} />
@@ -64,7 +89,7 @@ export default function Dashboard() {
                     <div className="flex items-center gap-3 text-gray-500 text-xs relative z-10">
                       <div className="flex items-center gap-1">
                         <Clock size={12} />
-                        <span>2d</span>
+                        <span>{task.created_at ? new Date(task.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now'}</span>
                       </div>
                       {task.priority === 'high' && (
                         <div className="flex items-center gap-1 text-warning">
