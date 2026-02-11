@@ -1,98 +1,71 @@
-import { useState } from 'react';
+import { LayoutGrid, FolderGit2, Terminal, Cpu, Settings, type LucideIcon } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  CheckSquare, 
-  Bot, 
-  Settings, 
-  Activity, 
-  Menu,
-  X,
-  CreditCard
-} from 'lucide-react';
-import { cn } from '../../lib/utils'; // Adjust based on your utils location
+import { clsx } from 'clsx';
 
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Tasks', href: '/tasks', icon: CheckSquare },
-  { name: 'Agents', href: '/agents', icon: Bot },
-  { name: 'Activity', href: '/activity', icon: Activity },
-  { name: 'Billing', href: '/billing', icon: CreditCard },
-  { name: 'Settings', href: '/settings', icon: Settings },
+interface NavItem {
+  icon: LucideIcon;
+  label: string;
+  path: string;
+}
+
+const navItems: NavItem[] = [
+  { icon: LayoutGrid, label: 'Overview', path: '/' },
+  { icon: FolderGit2, label: 'Workspace', path: '/workspace' },
+  { icon: Terminal, label: 'Activity', path: '/logs' },
+  { icon: Cpu, label: 'System Ops', path: '/ops' },
+  { icon: Settings, label: 'Settings', path: '/settings' },
 ];
 
 export function Sidebar() {
-  const [isOpen, setIsOpen] = useState(false);
-
   return (
-    <>
-      {/* Mobile Menu Button */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="p-2 rounded-md bg-card text-foreground border border-border shadow-sm"
-        >
-          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
-      </div>
-
-      {/* Sidebar Container */}
-      <div className={cn(
-        "fixed inset-y-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0",
-        isOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
-        <div className="flex flex-col h-full">
-          {/* Logo / Brand */}
-          <div className="flex items-center h-16 px-6 border-b border-border">
-            <Bot className="h-8 w-8 text-primary mr-2" />
-            <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              OpenClaw
-            </span>
+    <aside className="w-64 h-full bg-bg-secondary border-r border-border flex flex-col flex-shrink-0">
+      {/* Brand */}
+      <div className="h-20 flex items-center px-6 border-b border-border/50 gap-4 bg-gradient-to-r from-bg-dark-purple/50 to-transparent">
+        <div className="w-10 h-10 rounded-xl bg-accent-purple/20 flex items-center justify-center shadow-[0_0_15px_rgba(124,58,237,0.3)] border border-accent-purple/30 group cursor-pointer hover:scale-105 transition-transform overflow-hidden">
+             {/* Users should check src/assets/logo.png */}
+             <img src="/arion-logo.png" alt="Arion" className="w-full h-full object-cover" onError={(e) => {
+                 // Fallback if image is missing
+                 e.currentTarget.style.display = 'none';
+                 e.currentTarget.parentElement!.innerText = 'A';
+             }}/>
+        </div>
+        <div>
+          <div className="font-display font-bold text-white tracking-wide text-base flex items-baseline gap-1">
+            ARION <span className="text-accent-purple font-sans font-light text-xs">CORE</span>
           </div>
-
-          {/* Navigation Links */}
-          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto hidden-scrollbar">
-            {navigation.map((item) => (
-              <NavLink
-                key={item.name}
-                to={item.href}
-                className={({ isActive }) => cn(
-                  "flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group",
-                  isActive 
-                    ? "bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20" 
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}
-              >
-                <item.icon className={cn(
-                  "mr-3 h-5 w-5 flex-shrink-0 transition-colors",
-                )} />
-                {item.name}
-              </NavLink>
-            ))}
-          </nav>
-
-          {/* Footer / User Profile User */}
-          <div className="p-4 border-t border-border">
-            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold">
-                OC
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">Operator</p>
-                <p className="text-xs text-muted-foreground truncate">Pro Plan</p>
-              </div>
-            </div>
+          <div className="text-[10px] text-gray-500 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_5px_rgba(16,185,129,0.5)]"></span>
+            <span>ONLINE</span>
           </div>
         </div>
       </div>
-      
-      {/* Overlay for mobile */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 lg:hidden"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-    </>
+
+      {/* Nav */}
+      <nav className="p-4 space-y-1.5 flex-1 overflow-y-auto">
+        {navItems.map((item) => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) =>
+              clsx(
+                "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium group relative overflow-hidden",
+                isActive
+                  ? "text-white bg-gradient-to-r from-accent-purple/20 to-transparent border border-border-purple/50"
+                  : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
+              )
+            }
+          >
+            {({ isActive }) => (
+                <>
+                    {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent-purple shadow-[0_0_10px_#7c3aed]"></div>}
+                    <item.icon size={18} className={clsx("transition-colors", isActive ? "text-accent-purple" : "group-hover:text-accent-purple")} />
+                    <span>{item.label}</span>
+                </>
+            )}
+          </NavLink>
+        ))}
+      </nav>
+
+    </aside>
   );
 }

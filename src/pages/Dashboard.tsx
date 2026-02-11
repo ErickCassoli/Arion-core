@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { MoreVertical, Clock, Plus, AlertCircle, Loader2 } from 'lucide-react';
+import { MoreVertical, AlertCircle, Loader2, Wifi, WifiOff } from 'lucide-react';
 import { clsx } from 'clsx';
 import { TaskService } from '../services/api';
+import { useSocket } from '../hooks/useSocket';
 
 // Tipagem básica para evitar erros de TS se o projeto for estrito
 interface Task {
@@ -24,28 +25,23 @@ export default function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { isConnected, lastEvent } = useSocket();
 
   const loadTasks = async () => {
     try {
-<<<<<<< HEAD
-      const data = await TaskService.getAll();
-      setTasks(Array.isArray(data) ? data : []);
-      setError('');
-=======
       // Tenta buscar da API, se falhar, usa dados locais para não quebrar a tela
       try {
           const data = await TaskService.getAll();
-          setTasks(data);
+          setTasks(Array.isArray(data) ? data : []);
           setError('');
       } catch (e) {
           console.warn("API Offline, loading fallback data");
           setTasks([
-              { id: 1, title: 'Interface Visual v5.0 (Offline Mode)', status: 'in_progress', priority: 'high', tag: 'Frontend' },
-              { id: 2, title: 'Connect Backend API', status: 'todo', priority: 'high', tag: 'Backend' }
+              { id: 1, title: 'Interface Visual v5.0 (Offline Mode)', status: 'in_progress', priority: 'high', tag: 'Frontend', created_at: new Date().toISOString() },
+              { id: 2, title: 'Connect Backend API', status: 'todo', priority: 'high', tag: 'Backend', created_at: new Date().toISOString() }
           ]);
           setError('Offline Mode');
       }
->>>>>>> ecbb6d18c4b0c948cb43c6a04c74072ed5981de2
     } catch (err) {
       console.error("Critical failure:", err);
     } finally {
@@ -57,6 +53,20 @@ export default function Dashboard() {
     loadTasks();
   }, []);
 
+  // Listen for real-time updates
+  useEffect(() => {
+      if (lastEvent?.event === 'task_update') {
+          const updatedTask = lastEvent.data[0];
+          setTasks(prev => {
+              const exists = prev.find(t => t.id === updatedTask.id);
+              if (exists) {
+                  return prev.map(t => t.id === updatedTask.id ? { ...t, ...updatedTask } : t);
+              }
+              return [...prev, updatedTask];
+          });
+      }
+  }, [lastEvent]);
+
   return (
     <div className="p-6 h-full flex flex-col">
       <div className="flex items-center justify-between mb-6">
@@ -67,7 +77,12 @@ export default function Dashboard() {
           </h1>
           <p className="text-xs text-gray-500 mt-1 flex items-center gap-2">
             Active Neural Operations
-            {error && <span className="text-amber-500 flex items-center gap-1"><AlertCircle size={10}/> {error}</span>}
+            {isConnected ? (
+                <span className="text-success flex items-center gap-1"><Wifi size={10}/> Connected</span>
+            ) : (
+                <span className="text-gray-500 flex items-center gap-1"><WifiOff size={10}/> Disconnected</span>
+            )}
+            {error && <span className="text-amber-500 flex items-center gap-1 ml-2"><AlertCircle size={10}/> {error}</span>}
           </p>
         </div>
         <div className="flex gap-2">

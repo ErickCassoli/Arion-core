@@ -26,6 +26,29 @@ export const TaskService = {
   }
 };
 
+export const FileService = {
+  listFiles: async () => {
+    const response = await api.get('/files');
+    return response.data;
+  },
+  readFile: async (path: string) => {
+    // Codifica o path para evitar problemas na URL
+    const response = await api.get(`/files/content?path=${encodeURIComponent(path)}`);
+    return response.data.content;
+  },
+  saveFile: async (path: string, content: string) => {
+    const response = await api.post('/files/save', { path, content });
+    return response.data;
+  }
+};
+
+export const CommandService = {
+  execute: async (command: string) => {
+    const response = await api.post('/execute', { command });
+    return response.data;
+  }
+};
+
 export const MetricsService = {
   getSystemStatus: async () => {
     const response = await api.get('/status'); // Ou /metrics
