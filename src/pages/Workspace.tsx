@@ -1,162 +1,102 @@
-import { useState, useEffect } from 'react';
-import { Folder, FileCode, Save, ChevronRight, ChevronDown, Loader2, File as FileIcon } from 'lucide-react';
-import { clsx } from 'clsx';
-import { FileService } from '../services/api';
+import { Folder, ChevronRight, ChevronDown, FileJson, FileCode } from 'lucide-react';
+import { useState } from 'react';
 
-interface FileNode {
-  name: string;
-  path: string;
-  type: 'file' | 'directory';
-  children?: FileNode[];
-}
+const fileTree = [
+  { 
+    name: 'src', 
+    type: 'folder', 
+    children: [
+        { name: 'agents', type: 'folder', children: [
+            { name: 'trader.ts', type: 'file' },
+            { name: 'researcher.ts', type: 'file' },
+        ]},
+        { name: 'config.json', type: 'file' },
+    ]
+  },
+  { name: 'package.json', type: 'file' },
+];
 
 export default function Workspace() {
-  const [files, setFiles] = useState<FileNode[]>([]);
-  const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const [fileContent, setFileContent] = useState('');
-  const [loadingFiles, setLoadingFiles] = useState(true);
-  const [loadingContent, setLoadingContent] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    loadFiles();
-  }, []);
-
-  const loadFiles = async () => {
-    try {
-      setLoadingFiles(true);
-      const data = await FileService.listFiles();
-      setFiles(data);
-    } catch (err) {
-      console.error("Failed to load files", err);
-      // Fallback data
-      setFiles([
-          { name: 'src', path: 'src', type: 'directory', children: [
-              { name: 'main.py', path: 'src/main.py', type: 'file' },
-              { name: 'utils.py', path: 'src/utils.py', type: 'file' }
-          ]},
-          { name: 'requirements.txt', path: 'requirements.txt', type: 'file' }
-      ]);
-    } finally {
-      setLoadingFiles(false);
-    }
-  };
-
-  const handleFileClick = async (path: string) => {
-    try {
-      setSelectedFile(path);
-      setLoadingContent(true);
-      const content = await FileService.readFile(path);
-      setFileContent(content);
-    } catch (err) {
-        console.error("Failed to read file", err);
-        setFileContent("# Error loading file content or file is binary.");
-    } finally {
-      setLoadingContent(false);
-    }
-  };
-
-  const handleSave = async () => {
-    if (!selectedFile) return;
-    try {
-      setSaving(true);
-      await FileService.saveFile(selectedFile, fileContent);
-      // Show toast success here
-      alert("File saved successfully!"); 
-    } catch (err) {
-      console.error("Failed to save file", err);
-      alert("Failed to save file.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const toggleFolder = (path: string) => {
-      const next = new Set(expandedFolders);
-      if (next.has(path)) next.delete(path);
-      else next.add(path);
-      setExpandedFolders(next);
-  };
-
-  const renderTree = (nodes: FileNode[], depth = 0) => {
-      return nodes.map(node => (
-          <div key={node.path} style={{ paddingLeft: `${depth * 12}px` }}>
-              <div 
-                className={clsx(
-                    "flex items-center gap-2 py-1 px-2 rounded cursor-pointer transition-colors text-sm",
-                    selectedFile === node.path ? "bg-accent/20 text-accent" : "hover:bg-bg-tertiary text-gray-400 hover:text-gray-200"
-                )}
-                onClick={() => node.type === 'directory' ? toggleFolder(node.path) : handleFileClick(node.path)}
-              >
-                  {node.type === 'directory' && (
-                      expandedFolders.has(node.path) ? <ChevronDown size={14} /> : <ChevronRight size={14} />
-                  )}
-                  {node.type === 'directory' ? <Folder size={14} className="text-blue-400" /> : <FileCode size={14} className="text-yellow-400" />}
-                  <span>{node.name}</span>
-              </div>
-              {node.type === 'directory' && expandedFolders.has(node.path) && node.children && (
-                  <div>{renderTree(node.children, depth + 1)}</div>
-              )}
-          </div>
-      ));
-  };
-
   return (
-    <div className="flex h-full border-t border-border">
-      {/* File Tree */}
-      <div className="w-64 bg-bg-secondary border-r border-border flex flex-col">
-        <div className="p-3 border-b border-border font-semibold text-xs text-gray-400 uppercase tracking-wider">
-            Explorer
-        </div>
-        <div className="flex-1 overflow-y-auto p-2">
-            {loadingFiles ? (
-                <div className="flex justify-center p-4"><Loader2 className="animate-spin text-gray-500" /></div>
-            ) : (
-                renderTree(files)
-            )}
+    <div className="h-[calc(100vh-8rem)] flex flex-col">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-display font-bold text-white">Workspace</h1>
+        <div className="flex items-center gap-2">
+            <span className="text-xs font-mono text-gray-500">Connected to:</span>
+            <span className="px-2 py-1 bg-accent/10 border border-accent/20 rounded text-xs text-accent font-mono">localhost:3000</span>
         </div>
       </div>
+      
+      <div className="flex-1 glass-panel flex overflow-hidden">
+        {/* Sidebar / File Tree */}
+        <div className="w-64 border-r border-white/5 bg-black/20 p-4 overflow-y-auto">
+            <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 pl-2">Explorer</div>
+            {fileTree.map((item, i) => (
+                <FileTreeItem key={i} item={item} />
+            ))}
+        </div>
 
-      {/* Editor */}
-      <div className="flex-1 flex flex-col bg-bg">
-        {selectedFile ? (
-            <>
-                <div className="h-10 border-b border-border flex items-center justify-between px-4 bg-bg-secondary/50">
-                    <div className="flex items-center gap-2 text-sm text-gray-300">
-                        <FileIcon size={14} />
-                        {selectedFile}
-                    </div>
-                    <button 
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="flex items-center gap-2 px-3 py-1 bg-accent text-white rounded text-xs hover:bg-accent-hover disabled:opacity-50 transition-colors"
-                    >
-                        {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
-                        Save
-                    </button>
+        {/* Code View */}
+        <div className="flex-1 flex flex-col bg-[#0d1117]">
+            {/* Tabs */}
+            <div className="flex items-center bg-bg-secondary border-b border-white/5">
+                <div className="px-4 py-2 text-sm text-gray-200 bg-[#0d1117] border-t-2 border-accent flex items-center gap-2">
+                    <FileCode size={14} className="text-blue-400" />
+                    trader.ts
                 </div>
-                <div className="flex-1 relative">
-                    {loadingContent ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-bg/50 backdrop-blur-sm z-10">
-                            <Loader2 className="animate-spin text-accent" size={32} />
-                        </div>
-                    ) : null}
-                     <textarea
-                        className="w-full h-full bg-bg text-gray-300 font-mono text-sm p-4 resize-none focus:outline-none"
-                        value={fileContent}
-                        onChange={(e) => setFileContent(e.target.value)}
-                        spellCheck={false}
-                    />
+                <div className="px-4 py-2 text-sm text-gray-500 hover:bg-white/5 cursor-pointer flex items-center gap-2">
+                     <FileJson size={14} className="text-yellow-400" />
+                     config.json
                 </div>
-            </>
-        ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-gray-500">
-                <FileCode size={48} className="mb-4 opacity-20" />
-                <p>Select a file to edit</p>
             </div>
-        )}
+
+            {/* Code Area */}
+            <div className="flex-1 p-4 font-mono text-sm overflow-auto text-gray-300">
+                <div className="flex gap-4">
+                    <div className="text-gray-600 select-none text-right min-w-[20px]">
+                        1<br/>2<br/>3<br/>4<br/>5<br/>6
+                    </div>
+                    <div>
+                        <span className="text-purple-400">import</span> {'{'} Agent {'}'} <span className="text-purple-400">from</span> <span className="text-green-400">'@arion/core'</span>;<br/>
+                        <br/>
+                        <span className="text-purple-400">export class</span> <span className="text-yellow-400">TraderAgent</span> <span className="text-purple-400">extends</span> Agent {'{'}<br/>
+                        &nbsp;&nbsp;<span className="text-purple-400">constructor</span>() {'{'}<br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">super</span>(<span className="text-green-400">'trader'</span>);<br/>
+                        &nbsp;&nbsp;{'}'}<br/>
+                        {'}'}
+                    </div>
+                </div>
+            </div>
+        </div>
       </div>
     </div>
   );
+}
+
+function FileTreeItem({ item, depth = 0 }: { item: any, depth?: number }) {
+    const [isOpen, setIsOpen] = useState(true);
+
+    return (
+        <div style={{ paddingLeft: depth * 12 }}>
+            <div 
+                className="flex items-center gap-1.5 py-1 px-2 rounded hover:bg-white/5 cursor-pointer text-gray-400 hover:text-gray-200 transition-colors"
+                onClick={() => setIsOpen(!isOpen)}
+            >
+                {item.type === 'folder' && (
+                    <span className="text-gray-600">
+                        {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                    </span>
+                )}
+                {item.type === 'folder' ? <Folder size={14} className="text-blue-400" /> : <FileCode size={14} className="text-gray-500" />}
+                <span className="text-sm">{item.name}</span>
+            </div>
+            {item.type === 'folder' && isOpen && item.children && (
+                <div>
+                    {item.children.map((child: any, i: number) => (
+                        <FileTreeItem key={i} item={child} depth={depth + 1} />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
 }

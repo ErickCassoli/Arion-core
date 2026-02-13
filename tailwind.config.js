@@ -13,29 +13,32 @@ export default {
       },
       colors: {
         bg: {
-          DEFAULT: '#0f1115', // Atlas Dark Base
-          secondary: '#16191f', // Sidebar/Cards
-          tertiary: '#1e2229', // Inputs/Hovers
-          'dark-purple': '#0f0518', // Deep Purple Background
+          DEFAULT: '#0a0a0f', // Void Black
+          secondary: '#13131f', // Glassmorphism Surface
+          tertiary: '#1c1c2e', // Lighter Surface
+          'dark-purple': '#0f0518',
         },
         border: {
           DEFAULT: 'rgba(255, 255, 255, 0.08)',
           hover: 'rgba(255, 255, 255, 0.15)',
-          purple: 'rgba(124, 58, 237, 0.2)', // Purple border
+          purple: 'rgba(139, 92, 246, 0.3)', // Violet-500 optimized
         },
         accent: {
-          DEFAULT: '#6366f1', // Indigo-500
-          hover: '#4f46e5',
-          glow: 'rgba(99, 102, 241, 0.15)',
-          purple: '#7c3aed', // Violet-600
-          'purple-glow': 'rgba(124, 58, 237, 0.25)',
+          DEFAULT: '#8b5cf6', // Neon Purple
+          hover: '#7c3aed',
+          glow: 'rgba(139, 92, 246, 0.5)',
+          green: '#10b981', // Neon Green
+          'green-glow': 'rgba(16, 185, 129, 0.5)',
         },
-        success: '#10b981',
-        warning: '#f59e0b', 
-        error: '#ef4444',
+        status: {
+          thinking: '#3b82f6', // Blue Pulse
+          executing: '#10b981', // Green Solid
+          error: '#ef4444', // Red Flash
+        },
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'spin-slow': 'spin 3s linear infinite',
       }
     },
   },

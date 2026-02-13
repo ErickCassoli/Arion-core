@@ -4,6 +4,40 @@
 
 @layer base {
   body {
+    @apply bg-bg text-gray-100 font-sans antialiased overflow-hidden;
+  }
+  
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-bg-secondary;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border hover:bg-border-hover rounded-full;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-bg-secondary/50 backdrop-blur-md border border-border rounded-xl;
+  }
+  
+  .neon-text {
+    @apply text-accent drop-shadow-[0_0_8px_rgba(139,92,246,0.5)];
+  }
+  
+  .neon-border {
+    @apply border-accent shadow-[0_0_10px_rgba(139,92,246,0.3)];
+  }
+}
+
+@layer base {
+  body {
     @apply bg-bg text-gray-300 antialiased overflow-hidden;
   }
 }

@@ -1,128 +1,60 @@
-import { useEffect, useState } from 'react';
-import { MoreVertical, AlertCircle, Loader2, Wifi, WifiOff } from 'lucide-react';
-import { clsx } from 'clsx';
-import { TaskService } from '../services/api';
-import { useSocket } from '../hooks/useSocket';
-
-// Tipagem básica para evitar erros de TS se o projeto for estrito
-interface Task {
-  id: number;
-  title: string;
-  status: string;
-  priority: string;
-  tag?: string;
-  created_at?: string;
-  source_url?: string;
-}
-
-const COLUMNS = {
-  todo: { label: 'To Do', color: 'border-blue-500/50', badge: 'bg-blue-500/10 text-blue-400' },
-  in_progress: { label: 'In Progress', color: 'border-accent/50', badge: 'bg-accent/10 text-accent' },
-  done: { label: 'Done', color: 'border-success/50', badge: 'bg-success/10 text-success' }
-};
+import { Activity, Terminal, ShieldAlert, Zap, Clock } from 'lucide-react';
 
 export default function Dashboard() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const { isConnected, lastEvent } = useSocket();
-
-  const loadTasks = async () => {
-    try {
-      // Tenta buscar da API, se falhar, usa dados locais para não quebrar a tela
-      try {
-          const data = await TaskService.getAll();
-          setTasks(Array.isArray(data) ? data : []);
-          setError('');
-      } catch (e) {
-          console.warn("API Offline, loading fallback data");
-          setTasks([
-              { id: 1, title: 'Interface Visual v5.0 (Offline Mode)', status: 'in_progress', priority: 'high', tag: 'Frontend', created_at: new Date().toISOString() },
-              { id: 2, title: 'Connect Backend API', status: 'todo', priority: 'high', tag: 'Backend', created_at: new Date().toISOString() }
-          ]);
-          setError('Offline Mode');
-      }
-    } catch (err) {
-      console.error("Critical failure:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadTasks();
-  }, []);
-
-  // Listen for real-time updates
-  useEffect(() => {
-      if (lastEvent?.event === 'task_update') {
-          const updatedTask = lastEvent.data[0];
-          setTasks(prev => {
-              const exists = prev.find(t => t.id === updatedTask.id);
-              if (exists) {
-                  return prev.map(t => t.id === updatedTask.id ? { ...t, ...updatedTask } : t);
-              }
-              return [...prev, updatedTask];
-          });
-      }
-  }, [lastEvent]);
-
   return (
-    <div className="p-6 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-semibold text-white flex items-center gap-3">
-            Task Board
-            {loading && <Loader2 size={16} className="animate-spin text-gray-500" />}
-          </h1>
-          <p className="text-xs text-gray-500 mt-1 flex items-center gap-2">
-            Active Neural Operations
-            {isConnected ? (
-                <span className="text-success flex items-center gap-1"><Wifi size={10}/> Connected</span>
-            ) : (
-                <span className="text-gray-500 flex items-center gap-1"><WifiOff size={10}/> Disconnected</span>
-            )}
-            {error && <span className="text-amber-500 flex items-center gap-1 ml-2"><AlertCircle size={10}/> {error}</span>}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={() => loadTasks()} className="px-3 py-1.5 rounded-md bg-bg-secondary border border-border text-xs text-gray-300 hover:text-white transition-colors">Sync</button>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-display font-bold text-white">Command Center</h1>
+        <div className="flex gap-3">
+            <button className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 rounded-lg transition-all font-mono text-sm">
+                <ShieldAlert size={16} /> EMERGENCY STOP
+            </button>
+            <button className="flex items-center gap-2 px-4 py-2 bg-accent text-white hover:bg-accent-hover rounded-lg transition-all font-medium shadow-[0_0_15px_rgba(139,92,246,0.3)]">
+                <Zap size={16} /> Spawn Agent
+            </button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-x-auto pb-4">
-        <div className="flex gap-6 h-full min-w-[1000px]">
-          {Object.entries(COLUMNS).map(([key, col]) => (
-            <div key={key} className="flex-1 flex flex-col bg-bg-secondary/30 rounded-lg border border-border/50">
-              <div className={clsx("p-3 border-b border-border flex justify-between items-center border-l-2 bg-bg-secondary/50", col.color)}>
-                <span className="font-medium text-gray-300 text-xs uppercase tracking-wider">{col.label}</span>
-                <span className="bg-bg-tertiary text-gray-500 text-[10px] px-2 py-0.5 rounded-full font-mono">
-                  {tasks.filter(t => t.status === key).length}
-                </span>
-              </div>
-
-              <div className="p-3 space-y-3 overflow-y-auto flex-1 scrollbar-thin">
-                {tasks.filter(t => t.status === key).map(task => (
-                  <div key={task.id} className="bg-bg-tertiary p-4 rounded border border-border hover:border-gray-500/50 transition-all cursor-pointer shadow-sm group relative overflow-hidden">
-                    <div className="flex justify-between items-start mb-3 relative z-10">
-                      <span className={clsx("text-[10px] px-1.5 py-0.5 rounded border font-medium", 
-                        task.tag === 'Frontend' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
-                        task.tag === 'Backend' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                        'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
-                      )}>
-                        {task.priority || 'Normal'}
-                      </span>
-                      <button className="text-gray-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                        <MoreVertical size={14} />
-                      </button>
-                    </div>
-                    
-                    <h3 className="text-sm font-medium text-gray-200 leading-snug mb-3 relative z-10 group-hover:text-white transition-colors">{task.title}</h3>
-                  </div>
-                ))}
-              </div>
+      {/* KPIs */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+            { label: 'Active Agents', value: '12', sub: '+2 spawning', icon: Terminal, color: 'text-accent' },
+            { label: 'Pending Tasks', value: '48', sub: '12 high priority', icon: Clock, color: 'text-orange-400' },
+            { label: 'Total Cost', value: '$4.20', sub: '+$0.12 / hr', icon: Activity, color: 'text-green-400' },
+            { label: 'System Uptime', value: '99.9%', sub: '24h 12m', icon: Zap, color: 'text-blue-400' },
+        ].map((kpi, i) => (
+          <div key={i} className="glass-panel p-6 flex flex-col justify-between relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <kpi.icon size={48} />
             </div>
-          ))}
+            <div>
+                <span className="text-gray-400 text-sm font-medium">{kpi.label}</span>
+                <div className={`text-4xl font-mono font-bold mt-2 ${kpi.color} drop-shadow-sm`}>{kpi.value}</div>
+            </div>
+            <span className="text-xs text-gray-500 mt-4 font-mono">{kpi.sub}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Activity Feed */}
+      <div className="glass-panel p-6">
+        <h2 className="text-lg font-bold text-gray-200 mb-4 flex items-center gap-2">
+            <Activity size={18} className="text-accent" />
+            Live Activity Feed
+        </h2>
+        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+            {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex gap-4 items-start p-3 rounded-lg hover:bg-white/5 transition-colors border-l-2 border-transparent hover:border-accent">
+                    <div className="mt-1 min-w-[60px] text-xs font-mono text-gray-500">10:42:{10+i}</div>
+                    <div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm font-bold text-gray-300">Agent-00{i}</span>
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">EXECUTING</span>
+                        </div>
+                        <p className="text-sm text-gray-400">Initiated data scraping sequence on target <span className="text-gray-300">`finance-v2`</span>.</p>
+                    </div>
+                </div>
+            ))}
         </div>
       </div>
     </div>

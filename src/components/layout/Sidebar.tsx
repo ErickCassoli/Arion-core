@@ -1,71 +1,115 @@
-import { LayoutGrid, FolderGit2, Terminal, Cpu, Settings, type LucideIcon } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { 
+  LayoutDashboard, 
+  FolderKanban, 
+  Bot, 
+  BrainCircuit, 
+  FolderTree, 
+  Settings, 
+  Activity,
+  Cpu,
+  HardDrive
+} from 'lucide-react';
 import { NavLink } from 'react-router-dom';
-import { clsx } from 'clsx';
+import clsx from 'clsx';
 
-interface NavItem {
-  icon: LucideIcon;
-  label: string;
-  path: string;
-}
-
-const navItems: NavItem[] = [
-  { icon: LayoutGrid, label: 'Overview', path: '/' },
-  { icon: FolderGit2, label: 'Workspace', path: '/workspace' },
-  { icon: Terminal, label: 'Activity', path: '/logs' },
-  { icon: Cpu, label: 'System Ops', path: '/ops' },
+const navItems = [
+  { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+  { icon: FolderKanban, label: 'Projects', path: '/projects' },
+  { icon: Bot, label: 'Agent Hive', path: '/hive' },
+  { icon: BrainCircuit, label: 'Neural Link', path: '/neural' },
+  { icon: FolderTree, label: 'Workspace', path: '/workspace' },
   { icon: Settings, label: 'Settings', path: '/settings' },
 ];
 
-export function Sidebar() {
+export default function Sidebar() {
   return (
-    <aside className="w-64 h-full bg-bg-secondary border-r border-border flex flex-col flex-shrink-0">
-      {/* Brand */}
-      <div className="h-20 flex items-center px-6 border-b border-border/50 gap-4 bg-gradient-to-r from-bg-dark-purple/50 to-transparent">
-        <div className="w-10 h-10 rounded-xl bg-accent-purple/20 flex items-center justify-center shadow-[0_0_15px_rgba(124,58,237,0.3)] border border-accent-purple/30 group cursor-pointer hover:scale-105 transition-transform overflow-hidden">
-             {/* Users should check src/assets/logo.png */}
-             <img src="/arion-logo.png" alt="Arion" className="w-full h-full object-cover" onError={(e) => {
-                 // Fallback if image is missing
-                 e.currentTarget.style.display = 'none';
-                 e.currentTarget.parentElement!.innerText = 'A';
-             }}/>
+    <motion.aside 
+      initial={{ x: -20, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      className="w-64 h-screen bg-bg-secondary border-r border-border flex flex-col fixed left-0 top-0 z-50"
+    >
+      {/* Logo Section */}
+      <div className="p-6 flex items-center gap-3 border-b border-border/50">
+        <div className="relative w-8 h-8 flex items-center justify-center">
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-0 border-2 border-accent rounded-full border-t-transparent"
+          />
+          <div className="w-4 h-4 bg-accent/20 rounded-full animate-pulse" />
         </div>
-        <div>
-          <div className="font-display font-bold text-white tracking-wide text-base flex items-baseline gap-1">
-            ARION <span className="text-accent-purple font-sans font-light text-xs">CORE</span>
-          </div>
-          <div className="text-[10px] text-gray-500 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_5px_rgba(16,185,129,0.5)]"></span>
-            <span>ONLINE</span>
-          </div>
+        <div className="flex flex-col">
+          <span className="font-display font-bold text-lg tracking-wider text-gray-100">NEXUS</span>
+          <span className="text-[10px] text-gray-400 tracking-[0.2em]">ARION V3</span>
         </div>
       </div>
 
-      {/* Nav */}
-      <nav className="p-4 space-y-1.5 flex-1 overflow-y-auto">
+      {/* Navigation */}
+      <nav className="flex-1 py-6 px-3 space-y-1">
         {navItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
-            className={({ isActive }) =>
-              clsx(
-                "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium group relative overflow-hidden",
-                isActive
-                  ? "text-white bg-gradient-to-r from-accent-purple/20 to-transparent border border-border-purple/50"
-                  : "text-gray-400 hover:text-white hover:bg-white/5 border border-transparent"
-              )
-            }
+            className={({ isActive }) => clsx(
+              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group relative overflow-hidden",
+              isActive 
+                ? "text-accent bg-accent/10 border border-border-purple" 
+                : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
+            )}
           >
             {({ isActive }) => (
-                <>
-                    {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent-purple shadow-[0_0_10px_#7c3aed]"></div>}
-                    <item.icon size={18} className={clsx("transition-colors", isActive ? "text-accent-purple" : "group-hover:text-accent-purple")} />
-                    <span>{item.label}</span>
-                </>
+              <>
+                {isActive && (
+                  <motion.div
+                    layoutId="activeNav"
+                    className="absolute inset-0 bg-accent/5"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  />
+                )}
+                <item.icon size={18} className={clsx("relative z-10 transition-colors", isActive && "drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]")} />
+                <span className="relative z-10">{item.label}</span>
+                {isActive && (
+                  <div className="absolute right-2 w-1.5 h-1.5 bg-accent rounded-full shadow-[0_0_8px_#8b5cf6]" />
+                )}
+              </>
             )}
           </NavLink>
         ))}
       </nav>
 
-    </aside>
+      {/* Host Status Widget */}
+      <div className="p-4 border-t border-border/50 bg-bg-tertiary/30">
+        <div className="flex items-center gap-2 mb-3 text-xs font-mono text-gray-500 uppercase tracking-wider">
+          <Activity size={12} className="text-accent-green" />
+          <span>Host Status</span>
+        </div>
+        
+        <div className="space-y-3">
+          <StatusItem icon={Cpu} label="CPU" value="12%" color="bg-accent" />
+          <StatusItem icon={Bot} label="RAM" value="4.2GB" color="bg-accent-green" />
+          <StatusItem icon={HardDrive} label="DSK" value="82%" color="bg-orange-500" />
+        </div>
+      </div>
+    </motion.aside>
+  );
+}
+
+function StatusItem({ icon: Icon, label, value, color }: { icon: any, label: string, value: string, color: string }) {
+  return (
+    <div className="flex items-center justify-between text-xs">
+      <div className="flex items-center gap-2 text-gray-400">
+        <Icon size={12} />
+        <span>{label}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="w-16 h-1.5 bg-bg rounded-full overflow-hidden">
+          <div className={`h-full ${color} w-[60%] rounded-full`} />
+        </div>
+        <span className="font-mono text-gray-300 w-8 text-right">{value}</span>
+      </div>
+    </div>
   );
 }
