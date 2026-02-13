@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useToast } from '../contexts/ToastContext';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 export const useSocket = () => {
     const [socket, setSocket] = useState<Socket | null>(null);

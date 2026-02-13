@@ -1,6 +1,17 @@
+import { useEffect } from 'react';
 import { Activity, Terminal, ShieldAlert, Zap, Clock } from 'lucide-react';
+import { useDashboardStore } from '../stores/useDashboardStore';
 
 export default function Dashboard() {
+  const { stats, fetchStats } = useDashboardStore();
+
+  useEffect(() => {
+      fetchStats();
+      // Optional: Polling interval
+      const interval = setInterval(fetchStats, 5000);
+      return () => clearInterval(interval);
+  }, [fetchStats]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -18,10 +29,10 @@ export default function Dashboard() {
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-            { label: 'Active Agents', value: '12', sub: '+2 spawning', icon: Terminal, color: 'text-accent' },
-            { label: 'Pending Tasks', value: '48', sub: '12 high priority', icon: Clock, color: 'text-orange-400' },
-            { label: 'Total Cost', value: '$4.20', sub: '+$0.12 / hr', icon: Activity, color: 'text-green-400' },
-            { label: 'System Uptime', value: '99.9%', sub: '24h 12m', icon: Zap, color: 'text-blue-400' },
+            { label: 'Active Agents', value: stats.activeAgents.toString(), sub: 'Offline', icon: Terminal, color: 'text-accent' },
+            { label: 'Pending Tasks', value: stats.pendingTasks.toString(), sub: 'Across all projects', icon: Clock, color: 'text-orange-400' },
+            { label: 'Active Projects', value: stats.activeProjects.toString(), sub: 'Operational', icon: Activity, color: 'text-green-400' },
+            { label: 'System Uptime', value: `${Math.floor(stats.uptime / 60)}m`, sub: 'Since last reboot', icon: Zap, color: 'text-blue-400' },
         ].map((kpi, i) => (
           <div key={i} className="glass-panel p-6 flex flex-col justify-between relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -43,18 +54,10 @@ export default function Dashboard() {
             Live Activity Feed
         </h2>
         <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-            {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex gap-4 items-start p-3 rounded-lg hover:bg-white/5 transition-colors border-l-2 border-transparent hover:border-accent">
-                    <div className="mt-1 min-w-[60px] text-xs font-mono text-gray-500">10:42:{10+i}</div>
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm font-bold text-gray-300">Agent-00{i}</span>
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">EXECUTING</span>
-                        </div>
-                        <p className="text-sm text-gray-400">Initiated data scraping sequence on target <span className="text-gray-300">`finance-v2`</span>.</p>
-                    </div>
-                </div>
-            ))}
+            {/* Feed integration pending */}
+            <div className="text-gray-500 text-sm font-mono p-4 text-center border border-white/5 rounded-lg">
+                System Initialized. Awaiting events...
+            </div>
         </div>
       </div>
     </div>
